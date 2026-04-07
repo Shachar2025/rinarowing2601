@@ -1,0 +1,575 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="אימון רינה">
+<title>תכנית אימונים — רינה</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+html,body{height:100%}
+body{font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Helvetica,sans-serif;height:100%;background:#f2f2f7;color:#1c1c1e;direction:rtl;-webkit-font-smoothing:antialiased}
+#app{display:flex;flex-direction:column;height:100dvh;max-width:480px;margin:0 auto;background:#f2f2f7;position:relative;overflow:hidden}
+.content{flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;padding-bottom:calc(68px + env(safe-area-inset-bottom,0px))}
+.content::-webkit-scrollbar{display:none}
+
+/* Phase colors */
+.ph1{--pc:#185FA5;--pb:#ddeeff;--pt:#0d4a85;--pl:#b8d9ff}
+.ph2{--pc:#3B6D11;--pb:#e2f0d6;--pt:#2a5009;--pl:#bde0a0}
+.ph3{--pc:#854F0B;--pb:#fde8c8;--pt:#6b3e08;--pl:#f5c98a}
+.ph4{--pc:#085041;--pb:#d1f0e6;--pt:#054035;--pl:#8fe0c2}
+
+/* Bottom nav */
+.bottom-nav{position:fixed;bottom:0;left:50%;transform:translateX(-50%);width:100%;max-width:480px;background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);border-top:1px solid rgba(0,0,0,0.12);display:flex;padding-bottom:env(safe-area-inset-bottom,0px);z-index:100}
+.nbtn{flex:1;padding:10px 0 12px;border:none;background:none;font-family:inherit;font-size:10px;font-weight:600;color:#8e8e93;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:4px;letter-spacing:.3px}
+.nbtn.on{color:var(--pc)}
+.nbtn svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+
+/* Header */
+.top-bar{background:rgba(255,255,255,0.92);backdrop-filter:blur(20px);-webkit-backdrop-filter:blur(20px);padding:calc(env(safe-area-inset-top,0px) + 14px) 16px 12px;border-bottom:1px solid rgba(0,0,0,0.08);display:flex;align-items:center;justify-content:space-between}
+.top-title{font-size:17px;font-weight:700}
+.ph-badge{padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;background:var(--pb);color:var(--pt)}
+
+/* Cards */
+.card{background:#fff;border-radius:16px;padding:16px;margin:10px 12px;box-shadow:0 1px 3px rgba(0,0,0,0.07)}
+.section-lbl{font-size:13px;font-weight:600;color:#8e8e93;padding:14px 16px 6px;text-transform:uppercase;letter-spacing:.5px}
+
+/* Hero */
+.hero{border-radius:20px;margin:12px;padding:22px;background:var(--pb);box-shadow:0 2px 12px rgba(0,0,0,0.06)}
+.hero-lbl{font-size:12px;color:var(--pt);opacity:.75;margin-bottom:3px;font-weight:500}
+.hero-day{font-size:26px;font-weight:800;color:var(--pt);margin-bottom:2px}
+.hero-date{font-size:13px;color:var(--pt);opacity:.65;margin-bottom:12px}
+.hero-content{font-size:14px;line-height:1.7;color:var(--pt);margin-bottom:14px;background:rgba(255,255,255,0.4);border-radius:10px;padding:10px 12px}
+.hero-metrics{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px}
+.hm-chip{background:rgba(255,255,255,0.55);border-radius:20px;padding:5px 12px;font-size:13px;font-weight:600;color:var(--pt)}
+.hero-btn{width:100%;padding:14px;border:none;border-radius:12px;background:var(--pc);color:#fff;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;letter-spacing:.2px}
+.hero-btn:active{transform:scale(.98);opacity:.9}
+.rest-card{border-radius:20px;margin:12px;padding:30px 20px;background:#fff;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.07)}
+.rest-icon{font-size:52px;margin-bottom:10px}
+.rest-title{font-size:22px;font-weight:700;color:#1c1c1e}
+.rest-sub{font-size:14px;color:#8e8e93;margin-top:6px}
+
+/* Stats */
+.stats-row{display:flex;gap:10px;margin:0 12px 4px}
+.stat-box{flex:1;background:#fff;border-radius:14px;padding:14px;text-align:center;box-shadow:0 1px 3px rgba(0,0,0,0.07)}
+.stat-num{font-size:30px;font-weight:800;color:var(--pc);line-height:1}
+.stat-lbl{font-size:11px;color:#8e8e93;margin-top:4px;font-weight:600}
+
+/* Phase buttons */
+.phase-row{display:flex;gap:8px;padding:0 12px}
+.ph-btn{flex:1;padding:9px 4px;border:1.5px solid rgba(0,0,0,0.12);border-radius:10px;background:#fff;font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;color:#3a3a3c;transition:all .15s}
+.ph-btn.on{background:var(--pc);color:#fff;border-color:transparent}
+
+/* Session cards in plan */
+.sess-card{background:#fff;border-radius:14px;padding:14px 16px;margin:6px 12px;box-shadow:0 1px 2px rgba(0,0,0,0.06)}
+.sess-card.rest{opacity:.5}
+.sess-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+.sess-day{font-size:16px;font-weight:700}
+.eq-tag{padding:4px 10px;border-radius:10px;font-size:11px;font-weight:700}
+.eq-erg{background:#e2f0d6;color:#2a5009}
+.eq-water{background:#ddeeff;color:#0d4a85}
+.eq-rest{background:#f2f2f7;color:#8e8e93}
+.eq-opt{background:#fde8c8;color:#6b3e08}
+.sess-body{font-size:13px;color:#636366;line-height:1.6;margin-bottom:10px;background:#f9f9fb;border-radius:8px;padding:9px 11px}
+.sess-meta{display:flex;gap:10px;flex-wrap:wrap}
+.sm-chip{font-size:12px;font-weight:600;padding:3px 10px;border-radius:8px;background:#f2f2f7;color:#3a3a3c}
+.sm-chip.hr{background:#fff0f0;color:#c0392b}
+
+/* Phase info card */
+.phase-info{background:var(--pb);border-radius:14px;padding:14px 16px;margin:6px 12px}
+.pi-name{font-size:16px;font-weight:700;color:var(--pt)}
+.pi-sub{font-size:13px;color:var(--pt);opacity:.75;margin-top:3px}
+
+/* Chips scroll */
+.chips{display:flex;gap:8px;padding:6px 12px 4px;overflow-x:auto;-webkit-overflow-scrolling:touch}
+.chips::-webkit-scrollbar{display:none}
+.chip{padding:7px 16px;border-radius:20px;border:1.5px solid rgba(0,0,0,0.12);font-size:13px;font-weight:600;cursor:pointer;white-space:nowrap;background:#fff;color:#3a3a3c;font-family:inherit}
+.chip.on{background:var(--pc);color:#fff;border-color:transparent}
+
+/* Form */
+.form-wrap{background:#fff;border-radius:20px;margin:10px 12px;padding:16px;box-shadow:0 1px 3px rgba(0,0,0,0.07)}
+.form-title{font-size:17px;font-weight:700;margin-bottom:14px}
+.fg{margin-bottom:12px}
+.flbl{font-size:13px;font-weight:600;color:#8e8e93;margin-bottom:5px;display:block}
+.finp{width:100%;padding:12px 14px;border:1.5px solid rgba(0,0,0,0.12);border-radius:11px;font-size:16px;background:#f9f9fb;color:#1c1c1e;font-family:inherit;direction:rtl;-webkit-appearance:none;appearance:none;transition:border-color .15s}
+.finp:focus{outline:none;border-color:var(--pc);background:#fff}
+select.finp{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%238e8e93' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:left 14px center;padding-left:38px}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.submit-btn{width:100%;padding:15px;border:none;border-radius:12px;background:var(--pc);color:#fff;font-family:inherit;font-size:16px;font-weight:700;cursor:pointer;margin-top:4px;letter-spacing:.2px}
+.submit-btn:active{transform:scale(.98);opacity:.9}
+
+/* History */
+.hist-card{background:#fff;border-radius:14px;padding:14px 16px;margin:6px 12px;box-shadow:0 1px 2px rgba(0,0,0,0.06)}
+.hist-top{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.hist-date{font-size:12px;color:#8e8e93;font-weight:500}
+.hist-ph-badge{padding:3px 9px;border-radius:8px;font-size:11px;font-weight:700}
+.hist-type{font-size:16px;font-weight:700;margin:2px 0 8px}
+.hist-metrics{display:flex;gap:8px;flex-wrap:wrap}
+.hstat{font-size:12px;font-weight:600;padding:4px 10px;border-radius:8px;background:#f2f2f7;color:#3a3a3c}
+.hstat.red{background:#fff0f0;color:#c0392b}
+.hstat.green{background:#e2f0d6;color:#2a5009}
+.hstat.amber{background:#fde8c8;color:#854F0B}
+.hist-notes{font-size:13px;color:#636366;margin-top:8px;padding-top:8px;border-top:1px solid #f2f2f7;line-height:1.5}
+.del-btn{font-family:inherit;font-size:12px;color:#ff3b30;background:none;border:none;cursor:pointer;padding:2px 0;margin-top:8px;font-weight:500}
+
+/* Empty */
+.empty{text-align:center;padding:50px 20px}
+.empty-icon{font-size:52px;margin-bottom:12px}
+.empty-t{font-size:17px;font-weight:700;color:#3a3a3c;margin-bottom:6px}
+.empty-s{font-size:14px;color:#8e8e93}
+
+/* Toast */
+.toast{position:fixed;top:calc(env(safe-area-inset-top,0px) + 16px);left:50%;transform:translateX(-50%) translateY(-120px);background:#1c1c1e;color:#fff;padding:11px 22px;border-radius:22px;font-size:14px;font-weight:600;z-index:999;transition:transform .35s cubic-bezier(.34,1.56,.64,1);pointer-events:none;white-space:nowrap;max-width:85vw;text-align:center}
+.toast.show{transform:translateX(-50%) translateY(0)}
+</style>
+</head>
+<body>
+<div class="app ph1" id="app">
+  <div class="top-bar">
+    <div class="top-title">תכנית רינה 🚣</div>
+    <div class="ph-badge" id="top-badge">שלב א'</div>
+  </div>
+  <div class="content" id="content"></div>
+  <nav class="bottom-nav">
+    <button class="nbtn on" id="btn-today" onclick="go('today')">
+      <svg viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+      היום
+    </button>
+    <button class="nbtn" id="btn-plan" onclick="go('plan')">
+      <svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>
+      התכנית
+    </button>
+    <button class="nbtn" id="btn-log" onclick="go('log')">
+      <svg viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+      יומן
+    </button>
+  </nav>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+const DAYS_HE = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת'];
+const MONTHS_HE = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר'];
+
+const PLAN = {
+  1:{label:"שלב א'",name:"בניית בסיס",weeks:"שבועות 1–4",hrCap:135,
+    sessions:{
+      0:{day:'ראשון',eq:'erg',content:"WU 5' קל | 20' Steady @ rate 18 | CD 5' | PME",hr:130,pace:'2:38–2:42',targetDist:4000},
+      2:{day:'שלישי',eq:'erg',content:"WU 5' | 3×5' @ rate 20 + 2' מנוחה בין סטים | CD 5' | PME",hr:135,pace:'2:32–2:36',targetDist:3500},
+      5:{day:'שישי',eq:'erg',content:"WU 5' | 25–28' Steady @ rate 18 | CD 5' | PME",hr:130,pace:'2:38–2:42',targetDist:4500},
+      6:{day:'שבת',eq:'erg',content:"WU 5' | 20–25' Steady קל @ rate 16–18 | CD 5' | PME",hr:128,pace:'2:40–2:45',targetDist:3500}
+    }
+  },
+  2:{label:"שלב ב'",name:"הרחבת נפח",weeks:"שבועות 5–12",hrCap:143,
+    sessions:{
+      0:{day:'ראשון',eq:'erg',content:"WU 5' | 25–30' Steady @ rate 18–20 | CD 5' | PME",hr:138,pace:'2:30–2:35',targetDist:5000},
+      2:{day:'שלישי',eq:'erg',content:"WU 5' | 4×5' @ rate 20–22 + 2' מנוחה | CD 5' | PME",hr:143,pace:'2:27–2:30',targetDist:4000},
+      4:{day:'חמישי',eq:'erg',content:"WU 5' | 20' Steady קל מאוד @ rate 16–18 | CD 5'",hr:125,pace:'2:45–2:50',targetDist:3500},
+      5:{day:'שישי',eq:'erg',content:"WU 5' | 30–35' Steady @ rate 18 | CD 5' | PME",hr:138,pace:'2:30–2:35',targetDist:6000},
+      6:{day:'שבת',eq:'erg',content:"WU 5' | 25–30' Steady קל @ rate 18 | CD 5' | PME",hr:132,pace:'2:35–2:40',targetDist:4500}
+    }
+  },
+  3:{label:"שלב ג'",name:"חזרה למים",weeks:"שבועות 13–20",hrCap:145,
+    sessions:{
+      0:{day:'ראשון',eq:'water',content:'WU 2K קל | 3K Steady @ rate 18–20 | CD 1K | PME',hr:140,targetDist:6000},
+      2:{day:'שלישי',eq:'erg',content:"WU 5' | 4×6' @ rate 20–22 + 2' מנוחה | CD 5' | PME",hr:145,pace:'2:25–2:28',targetDist:5000},
+      5:{day:'שישי',eq:'water',content:'WU 2K | 4–5K Steady @ rate 18–20 | CD 1K | PME',hr:143,targetDist:7000},
+      6:{day:'שבת',eq:'water',content:'WU 2K | 3–4K Steady קל @ rate 18 | CD 1K | PME',hr:135,targetDist:6000}
+    }
+  },
+  4:{label:"שלב ד'",name:"שגרה בריאה",weeks:"שבועות 21–26",hrCap:150,
+    sessions:{
+      0:{day:'ראשון',eq:'water',content:'WU 2K | 5–6K Steady @ rate 20 | CD 1K | PME',hr:148,targetDist:8000},
+      2:{day:'שלישי',eq:'erg',content:"WU 5' | 5×5' @ rate 22 + 2' מנוחה | CD 5' | PME",hr:150,pace:'2:22–2:26',targetDist:5500},
+      5:{day:'שישי',eq:'water',content:'WU 2K | 6–7K Steady @ rate 18–20 | CD 1–2K | PME',hr:148,targetDist:9000},
+      6:{day:'שבת',eq:'water',content:'WU 2K | 4–5K Steady קל @ rate 18–20 | CD 1K | PME',hr:140,targetDist:7000}
+    }
+  }
+};
+
+const PH_COLORS = {
+  1:{bg:'#ddeeff',txt:'#0d4a85'},
+  2:{bg:'#e2f0d6',txt:'#2a5009'},
+  3:{bg:'#fde8c8',txt:'#6b3e08'},
+  4:{bg:'#d1f0e6',txt:'#054035'}
+};
+
+let S = {phase:1, workouts:[], tab:'today', viewPhase:1};
+
+function load(){
+  try{S.phase=parseInt(localStorage.getItem('rph')||'1');}catch(e){}
+  try{S.workouts=JSON.parse(localStorage.getItem('rwk')||'[]');}catch(e){}
+  S.viewPhase=S.phase;
+}
+
+function save(){
+  try{
+    localStorage.setItem('rph',String(S.phase));
+    localStorage.setItem('rwk',JSON.stringify(S.workouts));
+  }catch(e){}
+}
+
+function setTheme(){
+  document.getElementById('app').className='app ph'+S.phase;
+  const ph=PLAN[S.phase];
+  document.getElementById('top-badge').textContent=ph.label;
+}
+
+function go(tab){
+  S.tab=tab;
+  ['today','plan','log'].forEach(t=>{
+    document.getElementById('btn-'+t).classList.toggle('on',t===tab);
+  });
+  render();
+  document.getElementById('content').scrollTop=0;
+}
+
+function render(){
+  const c=document.getElementById('content');
+  if(S.tab==='today') c.innerHTML=renderToday();
+  else if(S.tab==='plan') c.innerHTML=renderPlan();
+  else c.innerHTML=renderLogTab();
+}
+
+function todayStr(){
+  const d=new Date();
+  return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+}
+
+function formatDateHe(ds){
+  const d=new Date(ds+'T12:00:00');
+  return d.getDate()+' ב'+MONTHS_HE[d.getMonth()]+' '+d.getFullYear();
+}
+
+function getDOW(ds){return new Date(ds+'T12:00:00').getDay();}
+
+function renderToday(){
+  const today=todayStr();
+  const dow=getDOW(today);
+  const ph=PLAN[S.phase];
+  const sess=ph.sessions[dow];
+  const d=new Date();
+  const dateLabel=DAYS_HE[dow]+', '+d.getDate()+' ב'+MONTHS_HE[d.getMonth()];
+  const weekStart=new Date(d);
+  weekStart.setDate(d.getDate()-d.getDay());
+  const wStr=weekStart.getFullYear()+'-'+String(weekStart.getMonth()+1).padStart(2,'0')+'-'+String(weekStart.getDate()).padStart(2,'0');
+  const weekCount=S.workouts.filter(w=>w.date>=wStr).length;
+  const totalCount=S.workouts.length;
+  if(!S.todayEq) S.todayEq = sess ? (sess.eq==='rest'?'erg':sess.eq) : 'erg';
+
+  let heroHTML='';
+  if(!sess||sess.eq==='rest'){
+    heroHTML=`<div class="rest-card"><div class="rest-icon">🌙</div><div class="rest-title">יום מנוחה</div><div class="rest-sub">הגוף מתחזק בזמן ההתאוששות</div></div>`;
+  } else {
+    const isErg = S.todayEq !== 'water';
+    heroHTML=`
+    <div class="hero">
+      <div class="hero-lbl">אימון להיום</div>
+      <div class="hero-day">${sess.day}</div>
+      <div class="hero-date">${dateLabel}</div>
+      <div class="hero-content">${sess.content}</div>
+      <div class="hero-metrics">
+        ${sess.hr?`<div class="hm-chip">❤️ עד ${sess.hr}</div>`:''}
+        ${sess.pace?`<div class="hm-chip">⏱ ${sess.pace}/500מ׳</div>`:''}
+        ${sess.targetDist?`<div class="hm-chip">📏 מטרה: ${(sess.targetDist/1000).toFixed(1)} ק"מ</div>`:''}
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:14px">
+        <button type="button" onclick="setTodayEq('erg')"
+          style="flex:1;padding:11px 6px;border-radius:10px;border:2px solid ${isErg?'rgba(255,255,255,0.9)':'rgba(255,255,255,0.35)'};background:${isErg?'rgba(255,255,255,0.9)':'transparent'};color:${isErg?'var(--pt)':'rgba(255,255,255,0.8)'};font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s">
+          ⚙️ קונספט 2
+        </button>
+        <button type="button" onclick="setTodayEq('water')"
+          style="flex:1;padding:11px 6px;border-radius:10px;border:2px solid ${!isErg?'rgba(255,255,255,0.9)':'rgba(255,255,255,0.35)'};background:${!isErg?'rgba(255,255,255,0.9)':'transparent'};color:${!isErg?'var(--pt)':'rgba(255,255,255,0.8)'};font-family:inherit;font-size:14px;font-weight:700;cursor:pointer;transition:all .15s">
+          🚣 על המים
+        </button>
+      </div>
+      <button class="hero-btn" onclick="goLogQuick(${dow})">+ רשום אימון זה</button>
+    </div>`;
+  }
+
+  const recent=S.workouts.slice(0,2).map(w=>histCardHTML(w,false)).join('');
+
+  return `
+  ${heroHTML}
+  <div class="stats-row">
+    <div class="stat-box"><div class="stat-num">${totalCount}</div><div class="stat-lbl">סה"כ אימונים</div></div>
+    <div class="stat-box"><div class="stat-num">${weekCount}</div><div class="stat-lbl">השבוע</div></div>
+  </div>
+  <div class="section-lbl">שינוי שלב</div>
+  <div class="phase-row">
+    ${[1,2,3,4].map(p=>`<button class="ph-btn ${p===S.phase?'on':''}" onclick="changePhase(${p})">שלב ${['א','ב','ג','ד'][p-1]}'</button>`).join('')}
+  </div>
+  ${S.workouts.length>0?`
+    <div class="section-lbl">אימונים אחרונים</div>
+    ${recent}
+    ${S.workouts.length>2?`<div style="text-align:center;padding:8px 0"><button onclick="go('log')" style="background:none;border:none;color:var(--pc);font-family:inherit;font-size:14px;font-weight:600;cursor:pointer">כל האימונים ←</button></div>`:''}
+  `:''}
+  <div style="height:8px"></div>`;
+}
+
+function setTodayEq(val){
+  S.todayEq=val;
+  render();
+}
+
+function goLogQuick(dow){
+  go('log');
+  setTimeout(()=>{
+    const sel=document.getElementById('f-sess');
+    if(sel){
+      for(let o of sel.options){if(o.value===String(dow)){o.selected=true;break;}}
+    }
+    if(S.todayEq) selectEq(S.todayEq);
+  },100);
+}
+
+function changePhase(p){
+  S.phase=p;
+  S.viewPhase=p;
+  setTheme();
+  save();
+  render();
+  showToast("עברת ל"+PLAN[p].label);
+}
+
+function renderPlan(){
+  const ph=PLAN[S.viewPhase];
+  const sessionDays=Object.keys(ph.sessions).map(Number).sort((a,b)=>a-b);
+  let cardsHTML='';
+  for(const dow of sessionDays){
+    const s=ph.sessions[dow];
+    const isRest=s.eq==='rest';
+    const eqClass=s.eq==='water'?'eq-water':isRest?'eq-rest':s.opt?'eq-opt':'eq-erg';
+    const eqLabel=s.eq==='water'?'🚣 מים':isRest?'🌙 מנוחה':s.opt?'⚡ קונספט (אופציונלי)':'⚙️ קונספט';
+    cardsHTML+=`
+    <div class="sess-card${isRest?' rest':''}">
+      <div class="sess-header">
+        <div class="sess-day">${s.day}</div>
+        <span class="eq-tag ${eqClass}">${eqLabel}</span>
+      </div>
+      <div class="sess-body">${s.content}</div>
+      ${!isRest?`<div class="sess-meta">
+        ${s.hr?`<span class="sm-chip hr">❤️ עד ${s.hr}</span>`:''}
+        ${s.pace?`<span class="sm-chip">⏱ ${s.pace}</span>`:''}
+        ${s.targetDist?`<span class="sm-chip">📏 מטרה ${(s.targetDist/1000).toFixed(1)} ק"מ</span>`:''}
+      </div>`:''}
+    </div>`;
+  }
+  return `
+  <div class="section-lbl">בחרי שלב</div>
+  <div class="chips">
+    ${[1,2,3,4].map(p=>`<button class="chip${p===S.viewPhase?' on':''}" onclick="viewPhase(${p})">${PLAN[p].label} — ${PLAN[p].name}</button>`).join('')}
+  </div>
+  <div class="phase-info">
+    <div class="pi-name">${ph.label} — ${ph.name}</div>
+    <div class="pi-sub">${ph.weeks} | גבול דופק: ${ph.hrCap} פעימות</div>
+  </div>
+  ${cardsHTML}
+  <div class="section-lbl" style="padding-top:4px">הסבר קיצורים</div>
+  <div class="card" style="font-size:13px;color:#636366;line-height:1.8">
+    <b style="color:#1c1c1e">WU</b> — חימום קל &nbsp;|&nbsp; <b style="color:#1c1c1e">CD</b> — קירור &nbsp;|&nbsp; <b style="color:#1c1c1e">PME</b> — תרגילי ניידות אגן<br>
+    <b style="color:#1c1c1e">Steady</b> — קצב אחיד ומבוקר &nbsp;|&nbsp; <b style="color:#1c1c1e">rate</b> — מחיאות לדקה<br>
+    <b style="color:#c0392b">❤️</b> — דופק מטרה. אם מגיעה לגבול — מורידים קצב מיד, ללא ויתורים.
+  </div>
+  <div style="height:8px"></div>`;
+}
+
+function viewPhase(p){
+  S.viewPhase=p;
+  render();
+  document.getElementById('content').scrollTop=0;
+}
+
+function renderLogTab(){
+  const ph=PLAN[S.phase];
+  const today=todayStr();
+  const opts=Object.keys(ph.sessions).map(dow=>{
+    const s=ph.sessions[parseInt(dow)];
+    if(s.eq==='rest') return null;
+    const lbl=s.day+' — '+(s.eq==='water'?'מים':'קונספט')+(s.opt?' (אופציונלי)':'');
+    return `<option value="${dow}">${lbl}</option>`;
+  }).filter(Boolean).join('');
+  
+  const histHTML=S.workouts.length>0
+    ?S.workouts.map(w=>histCardHTML(w,true)).join('')
+    :`<div class="empty"><div class="empty-icon">🏅</div><div class="empty-t">עדיין אין אימונים מתועדים</div><div class="empty-s">רשמי את האימון הראשון למעלה</div></div>`;
+  
+  return `
+  <div class="form-wrap">
+    <div class="form-title">+ רישום אימון</div>
+    <div class="fg">
+      <label class="flbl">תאריך</label>
+      <input type="date" class="finp" id="f-date" value="${today}">
+    </div>
+    <div class="fg">
+      <label class="flbl">סוג אימון</label>
+      <select class="finp" id="f-sess">
+        ${opts}
+        <option value="other">חופשי / אחר</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label class="flbl">ציוד — בחרי:</label>
+      <div style="display:flex;gap:8px;margin-top:4px">
+        <button type="button" id="eq-erg" onclick="selectEq('erg')"
+          style="flex:1;padding:13px 8px;border-radius:11px;border:2px solid var(--pc);background:var(--pc);color:#fff;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">
+          ⚙️ קונספט 2
+        </button>
+        <button type="button" id="eq-water" onclick="selectEq('water')"
+          style="flex:1;padding:13px 8px;border-radius:11px;border:2px solid #ccc;background:#fff;color:#3a3a3c;font-family:inherit;font-size:15px;font-weight:700;cursor:pointer">
+          🚣 מים
+        </button>
+      </div>
+      <input type="hidden" id="f-eq" value="erg">
+    </div>
+    <div class="row2">
+      <div class="fg">
+        <label class="flbl">משך (דקות)</label>
+        <input type="number" class="finp" id="f-dur" placeholder="30" inputmode="numeric" min="1" max="240">
+      </div>
+      <div class="fg">
+        <label class="flbl">קצב ל-500מ׳</label>
+        <input type="text" class="finp" id="f-pace" placeholder="2:35" inputmode="text">
+      </div>
+    </div>
+    <div class="row2">
+      <div class="fg">
+        <label class="flbl">מרחק מטרה (מ׳)</label>
+        <input type="number" class="finp" id="f-tdist" placeholder="4000" inputmode="numeric" min="0">
+      </div>
+      <div class="fg">
+        <label class="flbl">מרחק בפועל (מ׳)</label>
+        <input type="number" class="finp" id="f-dist" placeholder="4085" inputmode="numeric" min="0">
+      </div>
+    </div>
+    <div class="row2">
+      <div class="fg">
+        <label class="flbl">דופק מקסימלי</label>
+        <input type="number" class="finp" id="f-hrmax" placeholder="128" inputmode="numeric" min="50" max="220">
+      </div>
+      <div class="fg">
+        <label class="flbl">דופק ממוצע</label>
+        <input type="number" class="finp" id="f-hravg" placeholder="118" inputmode="numeric" min="50" max="220">
+      </div>
+    </div>
+    <div class="fg">
+      <label class="flbl">הערות</label>
+      <textarea class="finp" id="f-notes" rows="2" placeholder="איך הרגשתי? מה הצליח? מה היה קשה?" style="resize:none;line-height:1.55;font-size:15px"></textarea>
+    </div>
+    <button class="submit-btn" onclick="submitLog()">שמור אימון ✓</button>
+  </div>
+  <div class="section-lbl">היסטוריה (${S.workouts.length} אימונים)</div>
+  ${histHTML}
+  <div style="height:8px"></div>`;
+}
+
+function selectEq(val){
+  document.getElementById('f-eq').value=val;
+  const pc=getComputedStyle(document.getElementById('app')).getPropertyValue('--pc').trim()||'#185FA5';
+  const ergBtn=document.getElementById('eq-erg');
+  const waterBtn=document.getElementById('eq-water');
+  if(val==='erg'){
+    ergBtn.style.background=pc;ergBtn.style.borderColor=pc;ergBtn.style.color='#fff';
+    waterBtn.style.background='#fff';waterBtn.style.borderColor='#ccc';waterBtn.style.color='#3a3a3c';
+  } else {
+    waterBtn.style.background=pc;waterBtn.style.borderColor=pc;waterBtn.style.color='#fff';
+    ergBtn.style.background='#fff';ergBtn.style.borderColor='#ccc';ergBtn.style.color='#3a3a3c';
+  }
+}
+
+function updateEquip(){
+  const v=document.getElementById('f-sess').value;
+  if(v==='other') return;
+  const s=PLAN[S.phase].sessions[parseInt(v)];
+  if(s) document.getElementById('f-eq').value=s.eq;
+}
+
+function submitLog(){
+  const date=document.getElementById('f-date').value;
+  if(!date){showToast('נא להזין תאריך');return;}
+  const sessVal=document.getElementById('f-sess').value;
+  const eq=document.getElementById('f-eq').value;
+  const dur=document.getElementById('f-dur').value;
+  const tdist=document.getElementById('f-tdist').value;
+  const dist=document.getElementById('f-dist').value;
+  const hrmax=document.getElementById('f-hrmax').value;
+  const hravg=document.getElementById('f-hravg').value;
+  const pace=document.getElementById('f-pace').value.trim();
+  const notes=document.getElementById('f-notes').value.trim();
+  const dow=sessVal==='other'?getDOW(date):parseInt(sessVal);
+  const sess=PLAN[S.phase].sessions[dow];
+  const w={
+    id:Date.now(),date,phase:S.phase,dow,
+    dayLabel:sess?sess.day:DAYS_HE[getDOW(date)],
+    sessType:eq==='water'?'מים':eq==='pilates'?'פילאטיס':'קונספט',
+    equipment:eq,
+    duration:dur?parseInt(dur):null,
+    targetDist:tdist?parseInt(tdist):(sess&&sess.targetDist?sess.targetDist:null),
+    distance:dist?parseInt(dist):null,
+    hrMax:hrmax?parseInt(hrmax):null,
+    hrAvg:hravg?parseInt(hravg):null,
+    plannedHr:sess?sess.hr:null,
+    pace:pace||null,
+    notes:notes||null
+  };
+  S.workouts.unshift(w);
+  save();
+  let toastMsg='האימון נשמר! ✓';
+  if(w.hrMax&&w.plannedHr&&w.hrMax>w.plannedHr) toastMsg='נשמר — שימי לב, הדופק עלה על המטרה';
+  showToast(toastMsg);
+  render();
+}
+
+function deleteWorkout(id){
+  if(!confirm('למחוק את האימון?')) return;
+  S.workouts=S.workouts.filter(w=>w.id!==id);
+  save();
+  render();
+  showToast('נמחק');
+}
+
+function histCardHTML(w,showDel){
+  const c=PH_COLORS[w.phase]||PH_COLORS[1];
+  const hrOver=w.hrMax&&w.plannedHr&&w.hrMax>w.plannedHr;
+  const distOver=w.distance&&w.targetDist&&w.distance>=w.targetDist;
+  const distUnder=w.distance&&w.targetDist&&w.distance<w.targetDist;
+  const distLabel=w.distance?(w.targetDist
+    ?`${(w.distance/1000).toFixed(2)} / ${(w.targetDist/1000).toFixed(1)} ק"מ ${distOver?'✓':distUnder?'↓':''}`
+    :`${(w.distance/1000).toFixed(2)} ק"מ`)
+    :null;
+  return `
+  <div class="hist-card">
+    <div class="hist-top">
+      <div class="hist-date">${formatDateHe(w.date)}</div>
+      <span class="hist-ph-badge" style="background:${c.bg};color:${c.txt}">${PLAN[w.phase].label}</span>
+    </div>
+    <div class="hist-type">${w.dayLabel} — ${w.sessType}</div>
+    <div class="hist-metrics">
+      ${w.duration?`<span class="hstat">⏱ ${w.duration} דק׳</span>`:''}
+      ${distLabel?`<span class="hstat${distOver?' green':distUnder?' amber':''}">📏 ${distLabel}</span>`:''}
+      ${w.hrMax?`<span class="hstat${hrOver?' red':''}">❤️ מקס׳ ${w.hrMax}${hrOver?' ⚠️':''}</span>`:''}
+      ${w.hrAvg?`<span class="hstat">❤️ ממוצע ${w.hrAvg}</span>`:''}
+      ${w.pace?`<span class="hstat">🏃 ${w.pace}/500מ׳</span>`:''}
+    </div>
+    ${w.notes?`<div class="hist-notes">${w.notes}</div>`:''}
+    ${showDel?`<button class="del-btn" onclick="deleteWorkout(${w.id})">🗑 מחק</button>`:''}
+  </div>`;
+}
+
+let toastTimer=null;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('show'),2800);
+}
+
+load();
+setTheme();
+render();
+</script>
+</body>
+</html>
